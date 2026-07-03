@@ -23,7 +23,7 @@ public class WhatsAppWebhookController implements DefaultApi {
     private final String tokenVerificacionWebhook;
 
     public WhatsAppWebhookController(CancelarCitaUseCase cancelarCitaUseCase,
-                                      @Value("${whatsapp.webhook.token-verificacion:}") String tokenVerificacionWebhook) {
+                                      @Value("${whatsapp.webhook.token-verificacion}") String tokenVerificacionWebhook) {
         this.cancelarCitaUseCase = cancelarCitaUseCase;
         this.tokenVerificacionWebhook = tokenVerificacionWebhook;
     }

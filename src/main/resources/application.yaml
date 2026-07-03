@@ -1,13 +1,17 @@
 spring:
   application:
     name: spring-boot-citasSalud
+  h2:
+    console:
+      enabled: false
 
 whatsapp:
   cloud-api:
     base-url: ${WHATSAPP_CLOUD_API_BASE_URL:https://graph.facebook.com/v20.0}
-    numero-telefono-id: ${WHATSAPP_CLOUD_API_PHONE_ID:}
-    token-acceso: ${WHATSAPP_CLOUD_API_TOKEN:}
+    numero-telefono-id: ${WHATSAPP_CLOUD_API_PHONE_ID}
+    token-acceso: ${WHATSAPP_CLOUD_API_TOKEN}
     reintento:
       espaciamiento-base-ms: 2000
   webhook:
-    token-verificacion: ${WHATSAPP_WEBHOOK_VERIFY_TOKEN:}
+    token-verificacion: ${WHATSAPP_WEBHOOK_VERIFY_TOKEN}
+    app-secret: ${WHATSAPP_WEBHOOK_APP_SECRET:}

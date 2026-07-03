@@ -60,6 +60,25 @@ class CitaJpaRepositoryAdapterIT {
     }
 
     @Test
+    void dadaUnaCitaCanceladaDentroDeVentana_cuandoSeBuscaLaVentanaDe24Horas_entoncesNoSeDevuelve() {
+        Medico medico = new Medico(UUID.randomUUID(), "Dr. Luis Rey");
+        Paciente paciente = new Paciente(UUID.randomUUID(), "María Ruiz", "573009876543");
+
+        Instant ahora = Instant.now();
+        Cita citaAgendada = Cita.agendar(UUID.randomUUID(), paciente, medico, ahora.plus(24, ChronoUnit.HOURS));
+        Cita citaCancelada = Cita.agendar(UUID.randomUUID(), paciente, medico, ahora.plus(24, ChronoUnit.HOURS));
+        citaCancelada.cancelar();
+
+        adapter.guardar(citaAgendada);
+        adapter.guardar(citaCancelada);
+
+        List<Cita> resultado = adapter.buscarAgendadasEnVentana(
+                ahora.plus(23, ChronoUnit.HOURS), ahora.plus(25, ChronoUnit.HOURS));
+
+        assertThat(resultado).extracting(Cita::getId).containsExactly(citaAgendada.getId());
+    }
+
+    @Test
     void dadaUnaCitaConRecordatorioEnviado_cuandoSeBuscaPorMensajeWhatsappId_entoncesSeResuelveLaCitaOrigen() {
         Medico medico = new Medico(UUID.randomUUID(), "Dra. Ana Torres");
         Paciente paciente = new Paciente(UUID.randomUUID(), "Juan Pérez", "573001234567");

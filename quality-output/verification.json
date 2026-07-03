@@ -1,0 +1,112 @@
+{
+  "proyecto": "spring-boot-citasSalud",
+  "version": "0.0.1-SNAPSHOT",
+  "fecha": "2026-07-03",
+  "commit": "3bf2864 + cambios no commiteados",
+  "tests": {
+    "comando": "./gradlew clean test jacocoTestReport",
+    "passed": 49,
+    "total": 49,
+    "coverage": 89.8,
+    "coverage_fuente": "build/reports/jacoco/test/jacocoTestReport.xml",
+    "coverage_metrica": "INSTRUCTION (covered=1427, missed=162, total=1589)",
+    "suites": [
+      { "clase": "com.citassalud.SpringBootCitasSaludApplicationTests",        "tests": 1,  "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.architecture.ArquitecturaLimpiaTest",          "tests": 2,  "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.contract.WhatsAppWebhookContractTest",         "tests": 4,  "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.functional.CucumberSuite",                     "tests": 6,  "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.integration.CitaJpaRepositoryAdapterIT",       "tests": 4,  "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.integration.WhatsAppCloudApiAdapterIT",        "tests": 8,  "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.integration.WhatsAppWebhookControllerIT",      "tests": 4,  "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.integration.WhatsAppWebhookHmacIT",            "tests": 3,  "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.unit.CancelarCitaUseCaseTest",                 "tests": 6,  "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.unit.EnviarRecordatorioUseCaseTest",           "tests": 4,  "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.unit.MedicoTest",                              "tests": 2,  "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.unit.RecordatorioTest",                        "tests": 5,  "failures": 0, "errors": 0 }
+    ]
+  },
+  "security": {
+    "fuente": "Análisis manual (grep + revisión estática) — Semgrep MCP no disponible (SEMGREP_APP_TOKEN sin resolver). Hallazgos HIGH del reporte anterior verificados como corregidos.",
+    "critical": 0,
+    "high": 0,
+    "secrets": 0,
+    "hallazgos": [
+      {
+        "archivo": "src/main/java/com/citassalud/interfaces/web/WhatsAppWebhookHmacFilter.java",
+        "linea": 38,
+        "severidad": "LOW",
+        "descripcion": "Si WHATSAPP_WEBHOOK_APP_SECRET no está definida, el filtro omite la verificación HMAC (appSecret.isEmpty() → bypass explícito). Comportamiento aceptable para entornos de desarrollo, pero debe asegurarse que la variable esté definida en producción."
+      }
+    ],
+    "corregidos": [
+      "HIGH-01: POST /webhook ahora verifica X-Hub-Signature-256 via WhatsAppWebhookHmacFilter (HmacSHA256 con MessageDigest.isEqual). Cubierto por WhatsAppWebhookHmacIT (3 tests: firma válida→200, firma inválida→403, sin cabecera→403).",
+      "HIGH-02: Eliminados defaults vacíos para token-verificacion, token-acceso y numero-telefono-id en application.yaml. La app falla en arranque si las vars no están definidas.",
+      "HIGH-03: Añadida dependencia spring-boot-starter-security + SecurityConfig con @EnableWebSecurity (permitAll para /api/v1/whatsapp/**, denyAll para el resto).",
+      "MEDIUM-01: H2 console deshabilitada explícitamente (spring.h2.console.enabled: false en application.yaml).",
+      "MEDIUM-02: Eliminados defaults vacíos para WHATSAPP_CLOUD_API_TOKEN y WHATSAPP_CLOUD_API_PHONE_ID."
+    ]
+  },
+  "spec": "specs/001-recordatorio-whatsapp-citas/spec.md",
+  "criteria": [
+    {
+      "id": "FR-001",
+      "fuente": "spec.md · FR-001 — Envío de recordatorio 24 horas antes del turno",
+      "status": "cumple",
+      "evidencia": "EnviarRecordatorioUseCaseTest.dadoUnaCitaAgendadaConNumeroValido_cuandoSeEjecutaElEnvio_entoncesEnviaElRecordatorioYMarcaLaCita PASA; Cucumber recordatorio.feature Escenario 1 PASA; RecordatorioSchedulerJob consulta ventana 24h±5min."
+    },
+    {
+      "id": "FR-002",
+      "fuente": "spec.md · FR-002 — Mensaje debe incluir fecha, hora y nombre del médico",
+      "status": "cumple",
+      "evidencia": "WhatsAppCloudApiAdapterIT.cuandoSeEnviaElRecordatorio_entoncesElCuerpoContieneNombreDelPacienteFechaHoraYNombreDelMedico PASA: wireMockServer.verify con matchingJsonPath($.text.body, containing('Juan Pérez')), matchingJsonPath($.text.body, containing(fechaHoraFormateada)), matchingJsonPath($.text.body, containing('Dra. Ana Torres')) — los tres assertions superados."
+    },
+    {
+      "id": "FR-003",
+      "fuente": "spec.md · FR-003 — Reconocer cancelación por palabra clave exacta (case-insensitive, trim)",
+      "status": "cumple",
+      "evidencia": "CancelarCitaUseCaseTest.dadoElPacienteRecibioElRecordatorio_cuandoRespondeCancelar PASA ('CANCELAR' mayúsculas); .dadaLaPalabraClaveConEspaciosYMinusculas PASA ('  cancelar  ' → trim+equalsIgnoreCase); Cucumber cancelacion.feature Escenario 1 PASA."
+    },
+    {
+      "id": "FR-003a",
+      "fuente": "spec.md · FR-003a — Respuesta no reconocida: reenviar aclaración sin modificar cita",
+      "status": "cumple",
+      "evidencia": "CancelarCitaUseCaseTest.dadaUnaRespuestaNoReconocida_cuandoSeProcesa PASA — estado RECORDATORIO_ENVIADO, verify(guardar, never()), verify(enviarAclaracion) PASA; Cucumber cancelacion.feature Escenario 2 PASA."
+    },
+    {
+      "id": "FR-004",
+      "fuente": "spec.md · FR-004 — Cancelación anula la cita y libera la franja",
+      "status": "cumple",
+      "evidencia": "CancelarCitaUseCaseTest: assertThat(cita.getEstado()).isEqualTo(EstadoCita.CANCELADA) + verify(citaRepositoryPort).guardar(cita) PASA; Cucumber cancelacion.feature laCitaQuedaAnulada() PASA."
+    },
+    {
+      "id": "FR-005",
+      "fuente": "spec.md · FR-005 — Confirmar cancelación al paciente por WhatsApp",
+      "status": "cumple",
+      "evidencia": "CancelarCitaUseCaseTest: verify(whatsAppGatewayPort).enviarConfirmacionCancelacion(paciente, cita) PASA; WhatsAppCloudApiAdapterIT.cuandoSeEnviaLaConfirmacionDeCancelacion PASA; Cucumber cancelacion.feature Escenario 3 PASA."
+    },
+    {
+      "id": "FR-006",
+      "fuente": "spec.md · FR-006 — Registrar cada intento de envío (enviado, fallido, sin número válido)",
+      "status": "cumple",
+      "evidencia": "RecordatorioTest: marcarEnviado→ENVIADO, marcarFallido→FALLIDO, marcarSinNumeroValido→SIN_NUMERO_VALIDO PASAN. EnviarRecordatorioUseCaseTest ejercita los tres caminos (éxito, sin número, fallo proveedor). Implementación registra vía AUDITORIA.info en cada ruta."
+    },
+    {
+      "id": "FR-007",
+      "fuente": "spec.md · FR-007 — No enviar recordatorio para citas ya canceladas",
+      "status": "cumple",
+      "evidencia": "CitaJpaRepositoryAdapterIT.dadaUnaCitaCanceladaDentroDeVentana_cuandoSeBuscaLaVentanaDe24Horas_entoncesNoSeDevuelve PASA: guarda una cita AGENDADA y una CANCELADA en la misma ventana, verifica que buscarAgendadasEnVentana devuelve exclusivamente la AGENDADA (assertThat(resultado).extracting(Cita::getId).containsExactly(citaAgendada.getId()))."
+    },
+    {
+      "id": "FR-008",
+      "fuente": "spec.md · FR-008 — Cancelación solo hasta 2 horas antes del turno",
+      "status": "cumple",
+      "evidencia": "CancelarCitaUseCaseTest.dadaUnaCitaAMenosDe2HorasDelTurno_cuandoResponteCancelar PASA — resultado FUERA_DE_VENTANA, estado RECORDATORIO_ENVIADO sin cambio, verify(enviarRechazoPorVentanaVencida) PASA; WhatsAppCloudApiAdapterIT.cuandoSeEnviaElRechazoPorVentanaVencida PASA."
+    },
+    {
+      "id": "FR-009",
+      "fuente": "spec.md · FR-009 — Asociar respuesta exclusivamente al hilo del recordatorio",
+      "status": "cumple",
+      "evidencia": "CancelarCitaUseCaseTest.dadoUnPacienteConVariasCitasActivas_cuandoResponteEnUnHiloEspecifico PASA: citaDelHilo→CANCELADA, otraCitaActiva→RECORDATORIO_ENVIADO, verify(citaRepositoryPort, never()).buscarPorMensajeWhatsappId('wamid.otro.hilo')."
+    }
+  ]
+}

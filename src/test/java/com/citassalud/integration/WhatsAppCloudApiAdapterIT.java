@@ -12,7 +12,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.web.client.RestClient;
 
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.time.temporal.ChronoUnit;
+import java.util.Locale;
 import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -42,6 +46,29 @@ class WhatsAppCloudApiAdapterIT {
     @AfterEach
     void limpiar() {
         wireMockServer.stop();
+    }
+
+    @Test
+    void cuandoSeEnviaElRecordatorio_entoncesElCuerpoContieneNombreDelPacienteFechaHoraYNombreDelMedico() {
+        Instant fechaCita = Instant.now().plus(24, ChronoUnit.HOURS);
+        Medico medicoLocal = new Medico(UUID.randomUUID(), "Dra. Ana Torres");
+        Paciente pacienteLocal = new Paciente(UUID.randomUUID(), "Juan Pérez", "573001234567");
+        Cita citaLocal = Cita.agendar(UUID.randomUUID(), pacienteLocal, medicoLocal, fechaCita);
+
+        wireMockServer.stubFor(post(urlEqualTo("/1234567890/messages"))
+                .willReturn(okJson("{\"messages\":[{\"id\":\"wamid.FR002\"}]}")));
+
+        adapter.enviarRecordatorio(pacienteLocal, medicoLocal, citaLocal);
+
+        DateTimeFormatter formatter = DateTimeFormatter
+                .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
+                .withLocale(Locale.of("es", "CO"));
+        String fechaHoraFormateada = formatter.format(fechaCita.atZone(ZoneId.systemDefault()));
+
+        wireMockServer.verify(postRequestedFor(urlEqualTo("/1234567890/messages"))
+                .withRequestBody(matchingJsonPath("$.text.body", containing("Juan Pérez")))
+                .withRequestBody(matchingJsonPath("$.text.body", containing(fechaHoraFormateada)))
+                .withRequestBody(matchingJsonPath("$.text.body", containing("Dra. Ana Torres"))));
     }
 
     @Test
