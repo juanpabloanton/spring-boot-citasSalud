@@ -2,6 +2,8 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '4.1.0'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'org.openapi.generator' version '7.10.0'
+	id 'jacoco'
 }
 
 group = 'com.citassalud'
@@ -17,18 +19,117 @@ repositories {
 	mavenCentral()
 }
 
+ext {
+	cucumberVersion = '7.20.1'
+	archunitVersion = '1.4.1'
+	wiremockVersion = '3.9.2'
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-h2console'
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'io.swagger.core.v3:swagger-annotations:2.2.25'
+	implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-restclient'
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.h2database:h2'
 	annotationProcessor 'org.projectlombok:lombok'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	testImplementation 'org.springframework.boot:spring-boot-test-autoconfigure'
+	testImplementation 'org.springframework.boot:spring-boot-data-jpa-test'
+	testImplementation 'org.mockito:mockito-core'
+	testImplementation 'org.mockito:mockito-junit-jupiter'
+	testImplementation 'org.assertj:assertj-core'
 	testCompileOnly 'org.projectlombok:lombok'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testAnnotationProcessor 'org.projectlombok:lombok'
+
+	testImplementation "io.cucumber:cucumber-java:${cucumberVersion}"
+	testImplementation "io.cucumber:cucumber-junit-platform-engine:${cucumberVersion}"
+	testImplementation 'org.junit.platform:junit-platform-suite'
+
+	testImplementation "com.tngtech.archunit:archunit-junit5:${archunitVersion}"
+
+	testImplementation "org.wiremock:wiremock-standalone:${wiremockVersion}"
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy jacocoTestReport
 }
+
+openApiGenerate {
+	generatorName = 'spring'
+	inputSpec = "$rootDir/src/main/resources/openapi/whatsapp-webhook.yaml".toString()
+	outputDir = "$buildDir/generated/openapi".toString()
+	apiPackage = 'com.citassalud.interfaces.web.generated.api'
+	modelPackage = 'com.citassalud.interfaces.web.generated.model'
+	invokerPackage = 'com.citassalud.interfaces.web.generated.invoker'
+	configOptions = [
+		interfaceOnly     : 'true',
+		useSpringBoot3    : 'true',
+		useTags           : 'true',
+		skipDefaultInterface: 'true',
+		dateLibrary       : 'java8'
+	]
+}
+
+sourceSets {
+	main {
+		java {
+			srcDir "$buildDir/generated/openapi/src/main/java"
+		}
+	}
+}
+
+compileJava.dependsOn tasks.openApiGenerate
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+		html.required = true
+	}
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: [
+				'com/citassalud/SpringBootCitasSaludApplication.class',
+				'com/citassalud/interfaces/web/generated/**'
+			])
+		}))
+	}
+}
+
+jacocoTestCoverageVerification {
+	dependsOn test
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: [
+				'com/citassalud/SpringBootCitasSaludApplication.class',
+				'com/citassalud/interfaces/web/generated/**'
+			])
+		}))
+	}
+	violationRules {
+		rule {
+			element = 'CLASS'
+			limit {
+				counter = 'LINE'
+				minimum = 0.80
+			}
+		}
+		rule {
+			element = 'BUNDLE'
+			limit {
+				counter = 'LINE'
+				minimum = 0.80
+			}
+		}
+	}
+}
+
+check.dependsOn jacocoTestCoverageVerification

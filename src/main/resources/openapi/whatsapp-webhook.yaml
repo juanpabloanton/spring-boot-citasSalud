@@ -1,0 +1,168 @@
+openapi: 3.0.3
+info:
+  title: Webhook de Respuestas de WhatsApp - Recordatorio de Citas
+  description: >
+    Contrato del endpoint que recibe las respuestas entrantes de los pacientes
+    en WhatsApp (WhatsApp Cloud API de Meta) para procesar la cancelación de
+    citas descrita en la Historia de Usuario 2 (US-03) de la funcionalidad
+    "Recordatorio de Cita por WhatsApp".
+  version: 1.0.0
+servers:
+  - url: /api/v1/whatsapp
+paths:
+  /webhook:
+    get:
+      operationId: verificarWebhook
+      summary: Verificación del webhook exigida por Meta WhatsApp Cloud API
+      description: >
+        Meta invoca este endpoint al configurar el webhook para validar la
+        propiedad del endpoint mediante un token compartido.
+      parameters:
+        - name: hub.mode
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [subscribe]
+        - name: hub.verify_token
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: hub.challenge
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Token válido; se devuelve el challenge recibido.
+          content:
+            text/plain:
+              schema:
+                type: string
+        "403":
+          description: Token de verificación inválido.
+    post:
+      operationId: recibirMensajeWhatsapp
+      summary: Recibe un evento entrante de WhatsApp (respuesta del paciente)
+      description: >
+        Procesa la respuesta del paciente a un recordatorio de cita. Si el
+        texto del mensaje coincide con la palabra clave de cancelación
+        (ver Clarifications en spec.md), dispara el caso de uso de
+        cancelación de la cita asociada al hilo del recordatorio (FR-003,
+        FR-003a, FR-004, FR-008, FR-009).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WhatsAppWebhookEvent"
+      responses:
+        "200":
+          description: >
+            Evento aceptado y procesado (o descartado por no ser relevante).
+            WhatsApp Cloud API exige una respuesta 200 rápida independientemente
+            del resultado de negocio.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookAck"
+        "400":
+          description: Payload malformado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    WhatsAppWebhookEvent:
+      type: object
+      required:
+        - entry
+      properties:
+        object:
+          type: string
+          example: whatsapp_business_account
+        entry:
+          type: array
+          items:
+            $ref: "#/components/schemas/WhatsAppEntry"
+    WhatsAppEntry:
+      type: object
+      required:
+        - changes
+      properties:
+        id:
+          type: string
+        changes:
+          type: array
+          items:
+            $ref: "#/components/schemas/WhatsAppChange"
+    WhatsAppChange:
+      type: object
+      properties:
+        field:
+          type: string
+          example: messages
+        value:
+          $ref: "#/components/schemas/WhatsAppChangeValue"
+    WhatsAppChangeValue:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/WhatsAppInboundMessage"
+    WhatsAppInboundMessage:
+      type: object
+      required:
+        - from
+        - id
+        - type
+      properties:
+        from:
+          type: string
+          description: Número de WhatsApp del paciente en formato E.164 sin "+".
+          example: "573001234567"
+        id:
+          type: string
+          description: Identificador del mensaje entrante.
+        timestamp:
+          type: string
+          description: Marca de tiempo Unix (segundos) provista por WhatsApp.
+        context:
+          $ref: "#/components/schemas/WhatsAppMessageContext"
+        text:
+          $ref: "#/components/schemas/WhatsAppTextBody"
+        type:
+          type: string
+          enum: [text]
+    WhatsAppMessageContext:
+      type: object
+      description: >
+        Referencia al mensaje original al que el paciente respondió; se usa
+        para correlacionar la respuesta con el Recordatorio/Cita origen (FR-009).
+      properties:
+        id:
+          type: string
+          description: mensajeProveedorId del Recordatorio original.
+    WhatsAppTextBody:
+      type: object
+      properties:
+        body:
+          type: string
+          example: "CANCELAR"
+    WebhookAck:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [recibido]
+    ErrorResponse:
+      type: object
+      properties:
+        codigo:
+          type: string
+        mensaje:
+          type: string
