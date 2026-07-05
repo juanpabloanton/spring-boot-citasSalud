@@ -1,6 +1,7 @@
 package com.citassalud.application.usecase;
 
 import com.citassalud.application.port.CitaRepositoryPort;
+import com.citassalud.application.port.RecordatorioRepositoryPort;
 import com.citassalud.application.port.WhatsAppGatewayPort;
 import com.citassalud.application.port.WhatsAppGatewayPort.ResultadoEnvioWhatsApp;
 import com.citassalud.domain.cita.Cita;
@@ -23,16 +24,19 @@ public class EnviarRecordatorioUseCase {
 
     private final CitaRepositoryPort citaRepositoryPort;
     private final WhatsAppGatewayPort whatsAppGatewayPort;
+    private final RecordatorioRepositoryPort recordatorioRepositoryPort;
     private final Supplier<Instant> reloj;
 
-    public EnviarRecordatorioUseCase(CitaRepositoryPort citaRepositoryPort, WhatsAppGatewayPort whatsAppGatewayPort) {
-        this(citaRepositoryPort, whatsAppGatewayPort, Instant::now);
+    public EnviarRecordatorioUseCase(CitaRepositoryPort citaRepositoryPort, WhatsAppGatewayPort whatsAppGatewayPort,
+                                      RecordatorioRepositoryPort recordatorioRepositoryPort) {
+        this(citaRepositoryPort, whatsAppGatewayPort, recordatorioRepositoryPort, Instant::now);
     }
 
     EnviarRecordatorioUseCase(CitaRepositoryPort citaRepositoryPort, WhatsAppGatewayPort whatsAppGatewayPort,
-                               Supplier<Instant> reloj) {
+                               RecordatorioRepositoryPort recordatorioRepositoryPort, Supplier<Instant> reloj) {
         this.citaRepositoryPort = citaRepositoryPort;
         this.whatsAppGatewayPort = whatsAppGatewayPort;
+        this.recordatorioRepositoryPort = recordatorioRepositoryPort;
         this.reloj = reloj;
     }
 
@@ -68,6 +72,7 @@ public class EnviarRecordatorioUseCase {
     }
 
     private void registrarAuditoria(Recordatorio recordatorio, Cita cita, String detalle) {
+        recordatorioRepositoryPort.guardar(recordatorio);
         AUDITORIA.info("Recordatorio {} citaId={} pacienteId={} intentos={} mensajeProveedorId={} - {}",
                 recordatorio.getEstadoEnvio(), cita.getId(), cita.getPaciente().getId(),
                 recordatorio.getIntentos(), recordatorio.getMensajeProveedorId(), detalle);

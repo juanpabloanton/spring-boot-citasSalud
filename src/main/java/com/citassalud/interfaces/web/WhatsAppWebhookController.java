@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,10 +32,19 @@ public class WhatsAppWebhookController implements DefaultApi {
 
     @Override
     public ResponseEntity<String> verificarWebhook(String hubMode, String hubVerifyToken, String hubChallenge) {
-        if ("subscribe".equals(hubMode) && tokenVerificacionWebhook.equals(hubVerifyToken)) {
+        if ("subscribe".equals(hubMode) && tokenCoincide(hubVerifyToken)) {
             return ResponseEntity.ok(hubChallenge);
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
+    private boolean tokenCoincide(String hubVerifyToken) {
+        if (hubVerifyToken == null) {
+            return false;
+        }
+        return MessageDigest.isEqual(
+                tokenVerificacionWebhook.getBytes(StandardCharsets.UTF_8),
+                hubVerifyToken.getBytes(StandardCharsets.UTF_8));
     }
 
     @Override

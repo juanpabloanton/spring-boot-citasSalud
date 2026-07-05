@@ -1,6 +1,7 @@
 package com.citassalud.unit;
 
 import com.citassalud.application.port.CitaRepositoryPort;
+import com.citassalud.application.port.RecordatorioRepositoryPort;
 import com.citassalud.application.port.WhatsAppGatewayPort;
 import com.citassalud.application.port.WhatsAppGatewayPort.ResultadoEnvioWhatsApp;
 import com.citassalud.application.usecase.EnviarRecordatorioUseCase;
@@ -8,6 +9,7 @@ import com.citassalud.domain.cita.Cita;
 import com.citassalud.domain.cita.EstadoCita;
 import com.citassalud.domain.medico.Medico;
 import com.citassalud.domain.paciente.Paciente;
+import com.citassalud.domain.recordatorio.EstadoEnvioRecordatorio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -25,13 +27,15 @@ class EnviarRecordatorioUseCaseTest {
 
     private CitaRepositoryPort citaRepositoryPort;
     private WhatsAppGatewayPort whatsAppGatewayPort;
+    private RecordatorioRepositoryPort recordatorioRepositoryPort;
     private EnviarRecordatorioUseCase useCase;
 
     @BeforeEach
     void configurar() {
         citaRepositoryPort = mock(CitaRepositoryPort.class);
         whatsAppGatewayPort = mock(WhatsAppGatewayPort.class);
-        useCase = new EnviarRecordatorioUseCase(citaRepositoryPort, whatsAppGatewayPort);
+        recordatorioRepositoryPort = mock(RecordatorioRepositoryPort.class);
+        useCase = new EnviarRecordatorioUseCase(citaRepositoryPort, whatsAppGatewayPort, recordatorioRepositoryPort);
     }
 
     @Test
@@ -49,6 +53,13 @@ class EnviarRecordatorioUseCaseTest {
         assertThat(cita.getEstado()).isEqualTo(EstadoCita.RECORDATORIO_ENVIADO);
         assertThat(cita.getUltimoMensajeWhatsappId()).isEqualTo("wamid.123");
         verify(citaRepositoryPort).guardar(cita);
+
+        ArgumentCaptor<com.citassalud.domain.recordatorio.Recordatorio> auditoria =
+                ArgumentCaptor.forClass(com.citassalud.domain.recordatorio.Recordatorio.class);
+        verify(recordatorioRepositoryPort).guardar(auditoria.capture());
+        assertThat(auditoria.getValue().getEstadoEnvio()).isEqualTo(EstadoEnvioRecordatorio.ENVIADO);
+        assertThat(auditoria.getValue().getCitaId()).isEqualTo(cita.getId());
+        assertThat(auditoria.getValue().getMensajeProveedorId()).isEqualTo("wamid.123");
     }
 
     @Test
@@ -64,6 +75,11 @@ class EnviarRecordatorioUseCaseTest {
         assertThat(cita.getEstado()).isEqualTo(EstadoCita.AGENDADA);
         verify(whatsAppGatewayPort, never()).enviarRecordatorio(any(), any(), any());
         verify(citaRepositoryPort, never()).guardar(any());
+
+        ArgumentCaptor<com.citassalud.domain.recordatorio.Recordatorio> auditoria =
+                ArgumentCaptor.forClass(com.citassalud.domain.recordatorio.Recordatorio.class);
+        verify(recordatorioRepositoryPort).guardar(auditoria.capture());
+        assertThat(auditoria.getValue().getEstadoEnvio()).isEqualTo(EstadoEnvioRecordatorio.SIN_NUMERO_VALIDO);
     }
 
     @Test
@@ -80,6 +96,11 @@ class EnviarRecordatorioUseCaseTest {
 
         assertThat(cita.getEstado()).isEqualTo(EstadoCita.AGENDADA);
         verify(citaRepositoryPort, never()).guardar(any());
+
+        ArgumentCaptor<com.citassalud.domain.recordatorio.Recordatorio> auditoria =
+                ArgumentCaptor.forClass(com.citassalud.domain.recordatorio.Recordatorio.class);
+        verify(recordatorioRepositoryPort).guardar(auditoria.capture());
+        assertThat(auditoria.getValue().getEstadoEnvio()).isEqualTo(EstadoEnvioRecordatorio.FALLIDO);
     }
 
     @Test
@@ -105,5 +126,6 @@ class EnviarRecordatorioUseCaseTest {
         ArgumentCaptor<Cita> captor = ArgumentCaptor.forClass(Cita.class);
         verify(citaRepositoryPort, times(2)).guardar(captor.capture());
         assertThat(captor.getAllValues()).containsExactlyInAnyOrder(cita1, cita2);
+        verify(recordatorioRepositoryPort, times(2)).guardar(any());
     }
 }

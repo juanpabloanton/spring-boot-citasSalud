@@ -1,6 +1,7 @@
 package com.citassalud.infrastructure.config;
 
 import com.citassalud.application.port.CitaRepositoryPort;
+import com.citassalud.application.port.RecordatorioRepositoryPort;
 import com.citassalud.application.port.WhatsAppGatewayPort;
 import com.citassalud.application.usecase.CancelarCitaUseCase;
 import com.citassalud.application.usecase.EnviarRecordatorioUseCase;
@@ -17,8 +18,9 @@ public class CasosDeUsoConfig {
 
     @Bean
     public EnviarRecordatorioUseCase enviarRecordatorioUseCase(CitaRepositoryPort citaRepositoryPort,
-                                                                 WhatsAppGatewayPort whatsAppGatewayPort) {
-        return new EnviarRecordatorioUseCase(citaRepositoryPort, whatsAppGatewayPort);
+                                                                 WhatsAppGatewayPort whatsAppGatewayPort,
+                                                                 RecordatorioRepositoryPort recordatorioRepositoryPort) {
+        return new EnviarRecordatorioUseCase(citaRepositoryPort, whatsAppGatewayPort, recordatorioRepositoryPort);
     }
 
     @Bean

@@ -10,6 +10,11 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.util.HexFormat;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -20,8 +25,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(WhatsAppWebhookController.class)
-@TestPropertySource(properties = "whatsapp.webhook.token-verificacion=token-secreto")
+@TestPropertySource(properties = {
+        "whatsapp.webhook.token-verificacion=token-secreto",
+        "whatsapp.webhook.app-secret=test-app-secret"
+})
 class WhatsAppWebhookControllerIT {
+
+    private static final String APP_SECRET = "test-app-secret";
 
     @Autowired
     private MockMvc mockMvc;
@@ -82,6 +92,7 @@ class WhatsAppWebhookControllerIT {
 
         mockMvc.perform(post("/api/v1/whatsapp/webhook")
                         .contentType("application/json")
+                        .header("X-Hub-Signature-256", computarFirmaHmac(APP_SECRET, payload))
                         .content(payload))
                 .andExpect(status().isOk())
                 .andExpect(content().json("{\"status\":\"recibido\"}"));
@@ -100,9 +111,17 @@ class WhatsAppWebhookControllerIT {
 
         mockMvc.perform(post("/api/v1/whatsapp/webhook")
                         .contentType("application/json")
+                        .header("X-Hub-Signature-256", computarFirmaHmac(APP_SECRET, payload))
                         .content(payload))
                 .andExpect(status().isOk());
 
         verify(cancelarCitaUseCase, org.mockito.Mockito.never()).procesarRespuesta(any(), any());
+    }
+
+    private static String computarFirmaHmac(String secret, String payload) throws Exception {
+        Mac mac = Mac.getInstance("HmacSHA256");
+        mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+        byte[] hash = mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
+        return "sha256=" + HexFormat.of().formatHex(hash);
     }
 }

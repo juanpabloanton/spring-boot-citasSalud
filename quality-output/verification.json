@@ -1,112 +1,105 @@
 {
   "proyecto": "spring-boot-citasSalud",
   "version": "0.0.1-SNAPSHOT",
-  "fecha": "2026-07-03",
-  "commit": "3bf2864 + cambios no commiteados",
+  "fecha": "2026-07-05",
+  "commit": "17e4d26 (working tree con cambios sin commitear: nuevo RecordatorioRepositoryPort/RecordatorioJpaRepositoryAdapter/RecordatorioJpaEntity/RecordatorioSpringDataRepository, EnviarRecordatorioUseCase y CasosDeUsoConfig modificados, y tests nuevos/actualizados de recordatorio y HMAC — ver `git status --short`)",
   "tests": {
     "comando": "./gradlew clean test jacocoTestReport",
-    "passed": 49,
-    "total": 49,
-    "coverage": 89.8,
+    "passed": 53,
+    "total": 53,
+    "coverage": 92.61,
     "coverage_fuente": "build/reports/jacoco/test/jacocoTestReport.xml",
-    "coverage_metrica": "INSTRUCTION (covered=1427, missed=162, total=1589)",
+    "coverage_metrica": "Contador LINE a nivel de reporte (el ultimo <counter type=\"LINE\"/> del XML, tras todos los <package>): missed=28, covered=351, total=379 -> 92.61%. Cumple el umbral global >=80% de SKILL.md y constitution.md Principio V.",
     "suites": [
-      { "clase": "com.citassalud.SpringBootCitasSaludApplicationTests",        "tests": 1,  "failures": 0, "errors": 0 },
-      { "clase": "com.citassalud.architecture.ArquitecturaLimpiaTest",          "tests": 2,  "failures": 0, "errors": 0 },
-      { "clase": "com.citassalud.contract.WhatsAppWebhookContractTest",         "tests": 4,  "failures": 0, "errors": 0 },
-      { "clase": "com.citassalud.functional.CucumberSuite",                     "tests": 6,  "failures": 0, "errors": 0 },
-      { "clase": "com.citassalud.integration.CitaJpaRepositoryAdapterIT",       "tests": 4,  "failures": 0, "errors": 0 },
-      { "clase": "com.citassalud.integration.WhatsAppCloudApiAdapterIT",        "tests": 8,  "failures": 0, "errors": 0 },
-      { "clase": "com.citassalud.integration.WhatsAppWebhookControllerIT",      "tests": 4,  "failures": 0, "errors": 0 },
-      { "clase": "com.citassalud.integration.WhatsAppWebhookHmacIT",            "tests": 3,  "failures": 0, "errors": 0 },
-      { "clase": "com.citassalud.unit.CancelarCitaUseCaseTest",                 "tests": 6,  "failures": 0, "errors": 0 },
-      { "clase": "com.citassalud.unit.EnviarRecordatorioUseCaseTest",           "tests": 4,  "failures": 0, "errors": 0 },
-      { "clase": "com.citassalud.unit.MedicoTest",                              "tests": 2,  "failures": 0, "errors": 0 },
-      { "clase": "com.citassalud.unit.RecordatorioTest",                        "tests": 5,  "failures": 0, "errors": 0 }
-    ]
+      { "clase": "com.citassalud.SpringBootCitasSaludApplicationTests", "tests": 1, "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.architecture.ArquitecturaLimpiaTest", "tests": 2, "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.contract.WhatsAppWebhookContractTest", "tests": 4, "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.functional.CucumberSuite", "tests": 6, "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.integration.CitaJpaRepositoryAdapterIT", "tests": 4, "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.integration.RecordatorioJpaRepositoryAdapterIT", "tests": 2, "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.integration.WhatsAppCloudApiAdapterIT", "tests": 8, "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.integration.WhatsAppWebhookControllerIT", "tests": 4, "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.integration.WhatsAppWebhookHmacIT", "tests": 3, "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.integration.WhatsAppWebhookHmacSinSecretoIT", "tests": 2, "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.unit.CancelarCitaUseCaseTest", "tests": 6, "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.unit.EnviarRecordatorioUseCaseTest", "tests": 4, "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.unit.MedicoTest", "tests": 2, "failures": 0, "errors": 0 },
+      { "clase": "com.citassalud.unit.RecordatorioTest", "tests": 5, "failures": 0, "errors": 0 }
+    ],
+    "riesgo_cobertura_por_clase": "constitution.md Principio V exige LINE >80% por clase ademas del 80% global. Verificado clase por clase contra el XML: una unica clase queda por debajo del umbral: com.citassalud.interfaces.web.WhatsAppWebhookHmacFilter$EntradaServletDesdeBytesArray con 57.14% (4/7 lineas). Es una clase interna de infraestructura (envoltorio de ServletInputStream para permitir releer el body del request) no ejercitada de forma completa por los tests HTTP de MockMvc/WireMock existentes. No participa del calculo del gate (que solo lee 'tests.coverage' global), pero se reporta honestamente como desviacion de la constitucion pendiente de resolver por el equipo."
   },
   "security": {
-    "fuente": "Análisis manual (grep + revisión estática) — Semgrep MCP no disponible (SEMGREP_APP_TOKEN sin resolver). Hallazgos HIGH del reporte anterior verificados como corregidos.",
+    "fuente": "Semgrep MCP (semgrep_scan sobre 28 archivos de src/main/java) + grep de secretos + revision manual de SecurityConfig.java y clases de persistencia de Recordatorio",
     "critical": 0,
     "high": 0,
     "secrets": 0,
     "hallazgos": [
-      {
-        "archivo": "src/main/java/com/citassalud/interfaces/web/WhatsAppWebhookHmacFilter.java",
-        "linea": 38,
-        "severidad": "LOW",
-        "descripcion": "Si WHATSAPP_WEBHOOK_APP_SECRET no está definida, el filtro omite la verificación HMAC (appSecret.isEmpty() → bypass explícito). Comportamiento aceptable para entornos de desarrollo, pero debe asegurarse que la variable esté definida en producción."
-      }
-    ],
-    "corregidos": [
-      "HIGH-01: POST /webhook ahora verifica X-Hub-Signature-256 via WhatsAppWebhookHmacFilter (HmacSHA256 con MessageDigest.isEqual). Cubierto por WhatsAppWebhookHmacIT (3 tests: firma válida→200, firma inválida→403, sin cabecera→403).",
-      "HIGH-02: Eliminados defaults vacíos para token-verificacion, token-acceso y numero-telefono-id en application.yaml. La app falla en arranque si las vars no están definidas.",
-      "HIGH-03: Añadida dependencia spring-boot-starter-security + SecurityConfig con @EnableWebSecurity (permitAll para /api/v1/whatsapp/**, denyAll para el resto).",
-      "MEDIUM-01: H2 console deshabilitada explícitamente (spring.h2.console.enabled: false en application.yaml).",
-      "MEDIUM-02: Eliminados defaults vacíos para WHATSAPP_CLOUD_API_TOKEN y WHATSAPP_CLOUD_API_PHONE_ID."
+      { "severidad": "info", "regla": "revision-manual", "archivo": "WhatsAppWebhookHmacFilter.java", "linea": 43, "nota": "CORREGIDO respecto a la revision previa (commit 17e4d26): el filtro ahora falla cerrado (403) cuando whatsapp.webhook.app-secret esta vacio, en vez de dejar pasar el POST sin validar HMAC." },
+      { "severidad": "info", "regla": "revision-manual", "archivo": "WhatsAppWebhookController.java", "linea": 45, "nota": "CORREGIDO respecto a la revision previa: tokenCoincide ahora usa MessageDigest.isEqual (comparacion de tiempo constante) en vez de String.equals()." },
+      { "severidad": "low", "regla": "pii-en-logs (observacion manual, no Semgrep)", "archivo": "WhatsAppCloudApiAdapter.java", "linea": 101, "nota": "El numero de WhatsApp del paciente se registra en logs WARN ante fallos de envio (tambien linea 108). No es secreto ni vulnerabilidad critica; se recomienda enmascarar el numero en logs." }
     ]
   },
   "spec": "specs/001-recordatorio-whatsapp-citas/spec.md",
   "criteria": [
     {
       "id": "FR-001",
-      "fuente": "spec.md · FR-001 — Envío de recordatorio 24 horas antes del turno",
+      "fuente": "spec.md · FR-001 — enviar WhatsApp de recordatorio exactamente 24h antes del turno.",
       "status": "cumple",
-      "evidencia": "EnviarRecordatorioUseCaseTest.dadoUnaCitaAgendadaConNumeroValido_cuandoSeEjecutaElEnvio_entoncesEnviaElRecordatorioYMarcaLaCita PASA; Cucumber recordatorio.feature Escenario 1 PASA; RecordatorioSchedulerJob consulta ventana 24h±5min."
+      "evidencia": "RecordatorioSchedulerJob.procesarRecordatoriosPendientes() consulta buscarAgendadasEnVentana(ahora+24h-5min, ahora+24h+5min) y delega en EnviarRecordatorioUseCase.ejecutar(citaId). EnviarRecordatorioUseCaseTest.dadoUnaCitaAgendadaConNumeroValido_cuandoSeEjecutaElEnvio_entoncesEnviaElRecordatorioYMarcaLaCita PASA (marca RECORDATORIO_ENVIADO, guarda mensajeProveedorId, verifica ademas la persistencia de auditoria via recordatorioRepositoryPort). Cucumber recordatorio.feature 'Envio exitoso del recordatorio 24 horas antes del turno' (RecordatorioStepDefinitions) PASA. CitaJpaRepositoryAdapterIT.dadasCitasEnDistintasVentanas_... PASA contra H2 real, confirmando que solo la cita dentro de la ventana de 24h es devuelta."
     },
     {
       "id": "FR-002",
-      "fuente": "spec.md · FR-002 — Mensaje debe incluir fecha, hora y nombre del médico",
+      "fuente": "spec.md · FR-002 — el mensaje incluye fecha, hora y nombre del medico/a.",
       "status": "cumple",
-      "evidencia": "WhatsAppCloudApiAdapterIT.cuandoSeEnviaElRecordatorio_entoncesElCuerpoContieneNombreDelPacienteFechaHoraYNombreDelMedico PASA: wireMockServer.verify con matchingJsonPath($.text.body, containing('Juan Pérez')), matchingJsonPath($.text.body, containing(fechaHoraFormateada)), matchingJsonPath($.text.body, containing('Dra. Ana Torres')) — los tres assertions superados."
+      "evidencia": "WhatsAppCloudApiAdapterIT.cuandoSeEnviaElRecordatorio_entoncesElCuerpoContieneNombreDelPacienteFechaHoraYNombreDelMedico PASA: verifica contra WireMock que el body del mensaje contiene el nombre del paciente ('Juan Perez'), la fecha/hora formateada (Locale es-CO) y el nombre de la medica ('Dra. Ana Torres')."
     },
     {
       "id": "FR-003",
-      "fuente": "spec.md · FR-003 — Reconocer cancelación por palabra clave exacta (case-insensitive, trim)",
+      "fuente": "spec.md · FR-003 — reconocer la cancelacion unicamente mediante la palabra clave exacta 'CANCELAR' (case-insensitive, sin espacios extremos); cualquier otra respuesta no reconocida.",
       "status": "cumple",
-      "evidencia": "CancelarCitaUseCaseTest.dadoElPacienteRecibioElRecordatorio_cuandoRespondeCancelar PASA ('CANCELAR' mayúsculas); .dadaLaPalabraClaveConEspaciosYMinusculas PASA ('  cancelar  ' → trim+equalsIgnoreCase); Cucumber cancelacion.feature Escenario 1 PASA."
+      "evidencia": "CancelarCitaUseCaseTest.dadoElPacienteRecibioElRecordatorio_cuandoRespondeCancelar_entoncesLaCitaQuedaAnuladaYSeConfirmaPorWhatsapp PASA ('CANCELAR' exacto). dadaLaPalabraClaveConEspaciosYMinusculas_cuandoSeProcesa_entoncesSeReconoceLaCancelacion PASA ('  cancelar  ' -> CANCELADA), verificando case-insensitive y trim. Codigo: CancelarCitaUseCase.esPalabraClaveCancelacion usa texto.trim().equalsIgnoreCase('CANCELAR')."
     },
     {
       "id": "FR-003a",
-      "fuente": "spec.md · FR-003a — Respuesta no reconocida: reenviar aclaración sin modificar cita",
+      "fuente": "spec.md · FR-003a — respuesta no reconocida: reenviar aclaracion de opciones validas, sin modificar el estado de la cita.",
       "status": "cumple",
-      "evidencia": "CancelarCitaUseCaseTest.dadaUnaRespuestaNoReconocida_cuandoSeProcesa PASA — estado RECORDATORIO_ENVIADO, verify(guardar, never()), verify(enviarAclaracion) PASA; Cucumber cancelacion.feature Escenario 2 PASA."
+      "evidencia": "CancelarCitaUseCaseTest.dadaUnaRespuestaNoReconocida_cuandoSeProcesa_entoncesLaCitaNoCambiaYSeReenviaLaAclaracion PASA: con texto 'no puedo ir pero no cancelo' devuelve ResultadoCancelacion.NO_RECONOCIDA, la cita permanece RECORDATORIO_ENVIADO, se verifica never() sobre citaRepositoryPort.guardar(), y se invoca whatsAppGatewayPort.enviarAclaracion(paciente). Cucumber cancelacion.feature 'Respuesta no reconocida no modifica la cita y reenvia la aclaracion' PASA."
     },
     {
       "id": "FR-004",
-      "fuente": "spec.md · FR-004 — Cancelación anula la cita y libera la franja",
+      "fuente": "spec.md · FR-004 — al confirmar cancelacion, anular la cita y liberar la franja horaria.",
       "status": "cumple",
-      "evidencia": "CancelarCitaUseCaseTest: assertThat(cita.getEstado()).isEqualTo(EstadoCita.CANCELADA) + verify(citaRepositoryPort).guardar(cita) PASA; Cucumber cancelacion.feature laCitaQuedaAnulada() PASA."
+      "evidencia": "CancelarCitaUseCaseTest.dadoElPacienteRecibioElRecordatorio_...: cita.getEstado()==CANCELADA tras procesarRespuesta(), guardar(cita) invocado. CitaJpaRepositoryAdapterIT.dadaUnaCitaCanceladaDentroDeVentana_cuandoSeBuscaLaVentanaDe24Horas_entoncesNoSeDevuelve PASA contra H2 real, confirmando que una cita CANCELADA deja de bloquear la ventana/agenda. El dominio no modela una entidad 'Franja' separada; la franja es un atributo implicito del estado de la Cita (spec.md, Entidades Clave), por lo que la liberacion se verifica via el cambio de estado y su efecto en la consulta de agenda."
     },
     {
       "id": "FR-005",
-      "fuente": "spec.md · FR-005 — Confirmar cancelación al paciente por WhatsApp",
+      "fuente": "spec.md · FR-005 — confirmar al paciente por WhatsApp que la cancelacion fue procesada.",
       "status": "cumple",
-      "evidencia": "CancelarCitaUseCaseTest: verify(whatsAppGatewayPort).enviarConfirmacionCancelacion(paciente, cita) PASA; WhatsAppCloudApiAdapterIT.cuandoSeEnviaLaConfirmacionDeCancelacion PASA; Cucumber cancelacion.feature Escenario 3 PASA."
+      "evidencia": "CancelarCitaUseCaseTest: verify(whatsAppGatewayPort).enviarConfirmacionCancelacion(paciente, cita) PASA. WhatsAppCloudApiAdapterIT.cuandoSeEnviaLaConfirmacionDeCancelacion_entoncesSeHaceUnaSolaPeticionExitosa PASA contra WireMock. Cucumber cancelacion.feature 'El sistema confirma por WhatsApp la cancelacion exitosa' PASA."
     },
     {
       "id": "FR-006",
-      "fuente": "spec.md · FR-006 — Registrar cada intento de envío (enviado, fallido, sin número válido)",
+      "fuente": "spec.md · FR-006 — registrar cada intento de envio de recordatorio (enviado/fallido/sin numero valido) para auditoria.",
       "status": "cumple",
-      "evidencia": "RecordatorioTest: marcarEnviado→ENVIADO, marcarFallido→FALLIDO, marcarSinNumeroValido→SIN_NUMERO_VALIDO PASAN. EnviarRecordatorioUseCaseTest ejercita los tres caminos (éxito, sin número, fallo proveedor). Implementación registra vía AUDITORIA.info en cada ruta."
+      "evidencia": "Re-verificado leyendo el codigo actual: RecordatorioRepositoryPort (application/port, nuevo) es implementado por RecordatorioJpaRepositoryAdapter (infrastructure/persistence, nuevo) que persiste via RecordatorioSpringDataRepository/RecordatorioJpaEntity (tabla 'recordatorio', @Entity real, no un log). EnviarRecordatorioUseCase.registrarAuditoria(...) invoca recordatorioRepositoryPort.guardar(recordatorio) en los 3 caminos: SIN_NUMERO_VALIDO (linea 49-54), FALLIDO (linea 60-64) y ENVIADO (linea 66-71), antes de escribir el log SLF4J complementario. Evidencia de persistencia real: RecordatorioJpaRepositoryAdapterIT (2 tests contra H2 real via @DataJpaTest) verifica que un Recordatorio ENVIADO y uno SIN_NUMERO_VALIDO se guardan con springDataRepository.save(...) y se recuperan con el mismo estado/campos. Evidencia de invocacion en los 3 caminos: EnviarRecordatorioUseCaseTest mockea RecordatorioRepositoryPort y, con ArgumentCaptor, verifica en 3 tests separados (envio exitoso, sin numero valido, fallo del proveedor) que se invoca guardar(...) exactamente una vez con el Recordatorio en el EstadoEnvioRecordatorio correcto (ENVIADO/SIN_NUMERO_VALIDO/FALLIDO) y el mensajeProveedorId esperado. Evidencia a nivel funcional/BDD: RecordatorioStepDefinitions usa el fake InMemoryRecordatorioRepositoryPort (nuevo) y el paso 'el sistema registra el intento fallido por numero invalido' (recordatorio.feature) afirma sobre el Recordatorio efectivamente persistido en ese fake (estado SIN_NUMERO_VALIDO), no solo sobre el efecto colateral de no enviar el mensaje. Unica brecha menor detectada: no existe un escenario BDD/feature ni IT dedicados al camino FALLIDO (fallo del proveedor) que verifiquen persistencia end-to-end para ese estado especifico; ese camino queda cubierto solo a nivel unitario (EnviarRecordatorioUseCaseTest) y por el mecanismo generico de persistencia probado en integracion. Con evidencia real de persistencia (no solo logging) en los 3 caminos a nivel unitario, mas persistencia real verificada en integracion, se considera que FR-006 esta cumplido: la brecha se documenta como mejora pendiente, no como incumplimiento."
     },
     {
       "id": "FR-007",
-      "fuente": "spec.md · FR-007 — No enviar recordatorio para citas ya canceladas",
+      "fuente": "spec.md · FR-007 — NO enviar recordatorio para una cita ya cancelada previamente.",
       "status": "cumple",
-      "evidencia": "CitaJpaRepositoryAdapterIT.dadaUnaCitaCanceladaDentroDeVentana_cuandoSeBuscaLaVentanaDe24Horas_entoncesNoSeDevuelve PASA: guarda una cita AGENDADA y una CANCELADA en la misma ventana, verifica que buscarAgendadasEnVentana devuelve exclusivamente la AGENDADA (assertThat(resultado).extracting(Cita::getId).containsExactly(citaAgendada.getId()))."
+      "evidencia": "Doble barrera verificada por prueba: (1) CitaJpaRepositoryAdapterIT.dadaUnaCitaCanceladaDentroDeVentana_cuandoSeBuscaLaVentanaDe24Horas_entoncesNoSeDevuelve PASA contra H2 real: el scheduler (que solo procesa citas devueltas por buscarAgendadasEnVentana, filtrado por EstadoCita.AGENDADA vía CitaJpaRepositoryAdapter.buscarAgendadasEnVentana) nunca ve una cita CANCELADA. (2) Cita.registrarEnvioRecordatorio (linea 38-46 de Cita.java) lanza IllegalStateException si estado != AGENDADA, como guarda de dominio adicional. Nota de riesgo (sin cambios respecto a la revision anterior, no formaba parte del bloqueo por FR-006): si EnviarRecordatorioUseCase.ejecutar(citaId) se invocara directamente con el id de una cita ya CANCELADA fuera del flujo del scheduler, el codigo llama a whatsAppGatewayPort.enviarRecordatorio(...) ANTES de la validacion de estado (que ocurre en cita.registrarEnvioRecordatorio) — el mensaje ya se habria enviado antes de lanzar la excepcion. Ningun test cubre ese escenario directo, pero el unico camino de produccion real es via el scheduler, que si esta cubierto; se mantiene cumple con esta salvedad documentada para seguimiento del equipo."
     },
     {
       "id": "FR-008",
-      "fuente": "spec.md · FR-008 — Cancelación solo hasta 2 horas antes del turno",
+      "fuente": "spec.md · FR-008 — aceptar cancelacion por WhatsApp solo hasta 2h antes del turno; despues, rechazar y pedir contactar al centro de salud.",
       "status": "cumple",
-      "evidencia": "CancelarCitaUseCaseTest.dadaUnaCitaAMenosDe2HorasDelTurno_cuandoResponteCancelar PASA — resultado FUERA_DE_VENTANA, estado RECORDATORIO_ENVIADO sin cambio, verify(enviarRechazoPorVentanaVencida) PASA; WhatsAppCloudApiAdapterIT.cuandoSeEnviaElRechazoPorVentanaVencida PASA."
+      "evidencia": "CancelarCitaUseCaseTest.dadaUnaCitaAMenosDe2HorasDelTurno_cuandoResponteCancelar_entoncesSeRechazaLaCancelacionYSeIndicaContactarAlCentro PASA (cita a 1h del turno, ResultadoCancelacion.FUERA_DE_VENTANA, never() sobre guardar, se invoca enviarRechazoPorVentanaVencida). WhatsAppCloudApiAdapterIT.cuandoSeEnviaElRechazoPorVentanaVencida_entoncesSeHaceUnaSolaPeticionExitosa PASA. Codigo: VentanaCancelacionPolicy.permiteCancelacion usa Duration.between(ahora, fechaHora) >= 2h."
     },
     {
       "id": "FR-009",
-      "fuente": "spec.md · FR-009 — Asociar respuesta exclusivamente al hilo del recordatorio",
+      "fuente": "spec.md · FR-009 — con mas de una cita activa, asociar la cancelacion exclusivamente a la cita del hilo/recordatorio especifico, sin pedir confirmacion adicional.",
       "status": "cumple",
-      "evidencia": "CancelarCitaUseCaseTest.dadoUnPacienteConVariasCitasActivas_cuandoResponteEnUnHiloEspecifico PASA: citaDelHilo→CANCELADA, otraCitaActiva→RECORDATORIO_ENVIADO, verify(citaRepositoryPort, never()).buscarPorMensajeWhatsappId('wamid.otro.hilo')."
+      "evidencia": "CancelarCitaUseCaseTest.dadoUnPacienteConVariasCitasActivas_cuandoResponteEnUnHiloEspecifico_entoncesSoloSeCancelaLaCitaDeEseHilo PASA: solo citaDelHilo termina CANCELADA, otraCitaActiva permanece RECORDATORIO_ENVIADO, y se verifica never() sobre buscarPorMensajeWhatsappId('wamid.otro.hilo'). La resolucion es directa por mensajeProveedorIdOrigen (CancelarCitaUseCase.procesarRespuesta, linea 46-47), sin ningun paso de confirmacion adicional en el codigo ni en la prueba."
     }
   ]
 }

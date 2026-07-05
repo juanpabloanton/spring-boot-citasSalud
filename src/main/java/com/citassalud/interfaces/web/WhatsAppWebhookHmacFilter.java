@@ -35,8 +35,14 @@ public class WhatsAppWebhookHmacFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                      FilterChain filterChain) throws ServletException, IOException {
-        if (!esPostAlWebhook(request) || appSecret.isEmpty()) {
+        if (!esPostAlWebhook(request)) {
             filterChain.doFilter(request, response);
+            return;
+        }
+
+        if (appSecret.isEmpty()) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN,
+                    "Webhook no configurado: falta whatsapp.webhook.app-secret");
             return;
         }
 

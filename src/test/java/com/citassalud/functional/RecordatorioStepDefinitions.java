@@ -5,6 +5,7 @@ import com.citassalud.domain.cita.Cita;
 import com.citassalud.domain.cita.EstadoCita;
 import com.citassalud.domain.medico.Medico;
 import com.citassalud.domain.paciente.Paciente;
+import com.citassalud.domain.recordatorio.EstadoEnvioRecordatorio;
 import com.citassalud.infrastructure.scheduling.RecordatorioSchedulerJob;
 import io.cucumber.java.es.Cuando;
 import io.cucumber.java.es.Dado;
@@ -23,8 +24,9 @@ public class RecordatorioStepDefinitions {
 
     private final InMemoryCitaRepositoryPort citaRepositoryPort = new InMemoryCitaRepositoryPort();
     private final FakeWhatsAppGatewayPort whatsAppGatewayPort = new FakeWhatsAppGatewayPort();
+    private final InMemoryRecordatorioRepositoryPort recordatorioRepositoryPort = new InMemoryRecordatorioRepositoryPort();
     private final EnviarRecordatorioUseCase enviarRecordatorioUseCase =
-            new EnviarRecordatorioUseCase(citaRepositoryPort, whatsAppGatewayPort);
+            new EnviarRecordatorioUseCase(citaRepositoryPort, whatsAppGatewayPort, recordatorioRepositoryPort);
     private final RecordatorioSchedulerJob schedulerJob =
             new RecordatorioSchedulerJob(citaRepositoryPort, enviarRecordatorioUseCase);
 
@@ -77,7 +79,12 @@ public class RecordatorioStepDefinitions {
 
     @Entonces("el sistema registra el intento fallido por número inválido para el paciente {string}")
     public void seRegistraElIntentoFallido(String nombrePaciente) {
-        assertThat(whatsAppGatewayPort.mensajesEnviadosA(pacientesPorNombre.get(nombrePaciente).getId())).isEmpty();
+        UUID pacienteId = pacientesPorNombre.get(nombrePaciente).getId();
+        assertThat(whatsAppGatewayPort.mensajesEnviadosA(pacienteId)).isEmpty();
+
+        UUID citaId = citaRepositoryPort.buscarPorPacienteId(pacienteId).get(0).getId();
+        assertThat(recordatorioRepositoryPort.buscarPorCitaId(citaId))
+                .anyMatch(r -> r.getEstadoEnvio() == EstadoEnvioRecordatorio.SIN_NUMERO_VALIDO);
     }
 
     @Entonces("la cita del paciente {string} permanece en estado {string}")
